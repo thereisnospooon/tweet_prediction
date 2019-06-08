@@ -9,12 +9,6 @@ learners/*
 *.orig
 *.pyc
 __pycache__/*
-*/learners/*
-learners/*
-train_data.csv
-train_test_data.zip
-test_data.csv
-Crimes_since_2005.csv
 # Created by git when using merge tools for conflicts
 *.BACKUP.*
 *.BASE.*
