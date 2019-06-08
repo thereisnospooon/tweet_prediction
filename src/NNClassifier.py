@@ -20,11 +20,15 @@ np.random.seed(seed)
 
 
 # define baseline model
+# Current architecture -
+# 200 dimension input -> [10 neurons hidden layer] -> 10 classes ouput
+# Todo: You can play with the architecture as you like. just make sure that the output of each layer (the first argument
+# Todo: to the "Dense" function matches the input_dim parameter of the subsequent layer :)
 def baseline_model():
     # create model
     model = Sequential()
     model.add(Dense(100, input_dim=200, activation='relu'))
-    model.add(Dense(50, input_dim=100, activation='relu'))
+    model.add(Dense(10, input_dim=100, activation='relu'))
     # model.add(Dense(20, input_dim=50, activation='relu'))
     # model.add(Dense(20, input_dim=10, activation='relu'))
     # model.add(Dense(50, input_dim=20, activation='relu'))
@@ -34,24 +38,24 @@ def baseline_model():
     return model
 
 
+# Read data
 df = pd.read_csv('../train_data.csv', index_col=0)
 df.reset_index(inplace=True)
 dataset = process_data(df[TWEETS])
 y = df[LABEL]
-
-X_train, X_test, y_train, y_test = train_test_split(dataset, y, train_size=0.8)
 # Encode y to OHE
 encoder = LabelEncoder()
 encoder.fit(y)
 encoded_y = encoder.transform(y)
 dummy_y = np_utils.to_categorical(encoded_y)
 
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(dataset, dummy_y, train_size=0.8)
+
 # Neural Network
-estimator = KerasClassifier(build_fn=baseline_model, epochs=20, batch_size=5, verbose=1)
+estimator = KerasClassifier(build_fn=baseline_model, epochs=10, batch_size=5, verbose=1)
 
 estimator.fit(X_train, y_train)
 y_hat = estimator.predict(X_test)
-print(sum(y_hat == y_test) / len(y_hat))
-
-
-
+y_orig = np.argmax(y_test, axis=1, out=None)
+print("Accuracy of model: " + str(sum(y_hat == y_orig) / len(y_orig)))

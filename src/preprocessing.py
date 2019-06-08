@@ -21,12 +21,20 @@ def process_data(X):
     tweets = process_texts(X)
     dictionary = corpora.Dictionary.load('dictionary.dict')
     lsi_model = models.LsiModel.load('lsi.model')
+    # Transform each tweet (a string) to a row of bag of words vector in the corpus matrix.
     corpus = [dictionary.doc2bow(tweet.split()) for tweet in tweets]
+    # transform the bag of words corpus matrix to LSI matrix of features.
+    # To read more about LSI - https://en.wikipedia.org/wiki/Latent_semantic_analysis
     feature_mat = corpus2csc(lsi_model[corpus]).T.toarray()
     return feature_mat
 
 
 def clean_tweet(tweet):
+    """
+    Cleans each tweet from the punctuation marks in the re.sub call
+    :param tweet: A tweet.
+    :return:
+    """
     tweet = tweet[TWEET_BEGIN:TWEET_END]  # Clean brackets and apostrophes
     tweet = tweet.lower()
     tweet = re.sub(r"(“|”|\”|—|\.|\,|:|\+|!|\?|\"|-|\(|\))", "", tweet)
@@ -34,14 +42,12 @@ def clean_tweet(tweet):
 
 
 def process_texts(texts):
+    """
+    :param texts: An iterable of strings.
+    :return: An iterable of cleaned strings.
+    """
     res = []
     for i in range(len(texts)):
         res.append(clean_tweet(texts[i]))
     return res
 
-
-if __name__ == '__main__':
-    df = pd.read_csv(DIR + 'train_data.csv', index_col=0)
-    df.reset_index(inplace=True)
-    tweets = df[TWEETS]
-    data = process_data(tweets)
