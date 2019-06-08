@@ -1,0 +1,3 @@
+A model that predict tweet writers based on previous tweets.
+Currently using a neural networks. 
+In order to run the model, run src/NNClassifier.py (You can play with the architecture as you like).
