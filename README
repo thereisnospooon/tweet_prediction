@@ -2,4 +2,7 @@ A model that predict tweet writers based on previous tweets.
 Currently using a neural networks. 
 The features are a latent semantic analysis over the simple bag of words model. Read more about latent semantic analysis here - 
 https://en.wikipedia.org/wiki/Latent_semantic_analysis
-In order to run the model, run src/NNClassifier.py (You can play with the architecture as you like).
+In order to run the model - 
+1) Install all the requirements by running in the terminal - 
+	pip3 install -r requirements.txt
+2) Run src/NNClassifier.py (You can play with the architecture as you like).
