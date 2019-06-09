@@ -38,13 +38,12 @@ def create_dictionary(texts, dest_file: str, build_bigram, working_directory=DIR
                 if stopword in dictionary.token2id]
     once_ids = [tokenid for tokenid, docfreq in iteritems(dictionary.dfs) if docfreq == 1]
     dictionary.filter_tokens(stop_ids + once_ids)  # remove stop words and words that appear only once
-    dictionary.filter_extremes(no_below=3, no_above=0.85)
+    dictionary.filter_extremes(no_below=0.3, no_above=0.85)
     dictionary.compactify()  # remove gaps in id sequence after words that were removed
     dictionary.save(dest_file)
     print(dictionary)
     print(dictionary.token2id)
     return dictionary
-
 
 
 if __name__ == '__main__':
@@ -54,6 +53,5 @@ if __name__ == '__main__':
     tweets = process_texts(tweets)
     dictionary = create_dictionary(tweets, DIR + 'dictionary.dict', True)
     corpus = [dictionary.doc2bow(tweet.split()) for tweet in tweets]
-    lsi = models.LsiModel(corpus=corpus, id2word=dictionary)
+    lsi = models.LsiModel(corpus=corpus, id2word=dictionary, num_topics=200)
     lsi.save(DIR + 'lsi.model')
-

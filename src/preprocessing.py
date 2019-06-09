@@ -1,4 +1,5 @@
 from gensim import models, corpora
+from scipy.stats.mstats import zscore
 from gensim.matutils import corpus2csc
 import pandas as pd
 import re
@@ -13,6 +14,36 @@ DIR = '../'
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 
+def count_occ(char, tweets):
+    """
+    counts occurrences of char for each tweet.
+    :param char: A char
+    :param tweets: iterable of strings. The tweets
+    :return: A np.array of shape (len(tweets),)
+    """
+    return np.array([tweet.count(char) for tweet in tweets]).reshape((len(tweets), 1))
+
+
+def chars_per_tweet(tweets):
+    """
+    counts occurrences of char for each tweet.
+    :param char: A char
+    :param tweets: iterable of strings. The tweets
+    :return: A np.array of shape (len(tweets),)
+    """
+    return np.array([len(tweet) for tweet in tweets]).reshape((len(tweets), 1))
+
+
+def words_per_tweet(tweets):
+    """
+    counts number of words for each tweet.
+    :param char: A char
+    :param tweets: iterable of strings. The tweets
+    :return: A np.array of shape (len(tweets),)
+    """
+    return np.array([len(tweet.split()) for tweet in tweets]).reshape((len(tweets), 1))
+
+
 def process_data(X):
     """
     :param X: X is a pandas DataFrame of tweets (with no labels)
@@ -21,12 +52,26 @@ def process_data(X):
     tweets = process_texts(X)
     dictionary = corpora.Dictionary.load('dictionary.dict')
     lsi_model = models.LsiModel.load('lsi.model')
+
     # Transform each tweet (a string) to a row of bag of words vector in the corpus matrix.
     corpus = [dictionary.doc2bow(tweet.split()) for tweet in tweets]
+
     # transform the bag of words corpus matrix to LSI matrix of features.
     # To read more about LSI - https://en.wikipedia.org/wiki/Latent_semantic_analysis
     feature_mat = corpus2csc(lsi_model[corpus]).T.toarray()
-    return feature_mat
+
+    # Added features
+    # feature_mat = count_occ('!', X)
+    feature_mat = np.hstack((feature_mat, count_occ('!', X)))
+    feature_mat = np.hstack((feature_mat, count_occ('@', X)))
+    feature_mat = np.hstack((feature_mat, count_occ('?', X)))
+    feature_mat = np.hstack((feature_mat, count_occ('❤', X)))
+    feature_mat = np.hstack((feature_mat, count_occ('#', X)))
+    feature_mat = np.hstack((feature_mat, count_occ('/https:', X)))
+    feature_mat = np.hstack((feature_mat, chars_per_tweet(X)))
+    feature_mat = np.hstack((feature_mat, words_per_tweet(X)))
+    # feature_mat = zscore(feature_mat, axis=1)
+    return feature_mat, feature_mat.shape[1]
 
 
 def clean_tweet(tweet):
@@ -37,7 +82,7 @@ def clean_tweet(tweet):
     """
     tweet = tweet[TWEET_BEGIN:TWEET_END]  # Clean brackets and apostrophes
     tweet = tweet.lower()
-    tweet = re.sub(r"(“|”|\”|—|\.|\,|:|\+|!|\?|\"|-|\(|\))", "", tweet)
+    tweet = re.sub(r"(“|”|\”|—|\.|\,|:|\+|!|\?|\"|-|\(|\)|@|#|❤)", "", tweet)
     return tweet
 
 
@@ -50,4 +95,3 @@ def process_texts(texts):
     for i in range(len(texts)):
         res.append(clean_tweet(texts[i]))
     return res
-
